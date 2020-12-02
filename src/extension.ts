@@ -1,13 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { Range } from "vscode";
 
 const insertText = (val: string) => {
   const editor = vscode.window.activeTextEditor!;
   if (!editor) {
-    vscode.window.showErrorMessage(
-      "Can't insert log because no document is open"
-    );
     return;
   }
   const selection = editor.selection;
@@ -17,6 +15,31 @@ const insertText = (val: string) => {
   editor.edit((editBuilder) => {
     editBuilder.insert(new vscode.Position(lineOfSelectedVar + 1, 0), val);
   });
+};
+const getAllLogStatement = (): Range[] => {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return [];
+  }
+  const document = editor.document;
+  const documentText = document.getText();
+
+  let logStatement = [];
+  const logRegex = /console.(log|debug|info|warn|error|assert|dir|dirxml|trace|group|groupEnd|time|timeEnd|profile|profileEnd|count)\((.*)\);?/g;
+  let match;
+  // 正则循环匹配文本
+  while ((match = logRegex.exec(documentText))) {
+    // 每次匹配到的当前范围 ----Range
+    let matchRange = new vscode.Range(
+      document.positionAt(match.index),
+      document.positionAt(match.index + match[0].length)
+    );
+    if (!matchRange.isEmpty) {
+      // 放入到数组
+      logStatement.push(matchRange);
+    }
+  }
+  return logStatement;
 };
 
 // this method is called when your extension is activated
@@ -64,7 +87,33 @@ export function activate(context: vscode.ExtensionContext) {
       text ? insertText(logToInsert) : insertText("console.log();");
     }
   );
+  // 删除所有的log
+  const deleteAllLog = vscode.commands.registerCommand(
+    "kitety-vsc-extension-demo.deleteLog",
+    () => {
+      // 拿到当前内容的编辑页面的内容对象 editor
+      const editor = vscode.window.activeTextEditor!;
+      if (!editor) {
+        return;
+      }
+      let workSpace = new vscode.WorkspaceEdit();
+      const document = editor.document;
 
+      const logStatement = getAllLogStatement();
+      logStatement.forEach((log) => {
+        workSpace.delete(document.uri, log);
+      });
+      vscode.commands.executeCommand("editor.action.formatDocument");
+      // 完成后显示消息提醒
+      vscode.workspace.applyEdit(workSpace).then(() => {
+        vscode.window.showInformationMessage(
+          `${logStatement.length} console.log deleted`
+        );
+      });
+    }
+  );
+
+  context.subscriptions.push(deleteAllLog);
   context.subscriptions.push(insertLog);
   context.subscriptions.push(disposable);
 }

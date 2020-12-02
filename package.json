@@ -23,6 +23,10 @@
       {
         "command": "kitety-vsc-extension-demo.log",
         "title": "insert log"
+      },
+      {
+        "command": "kitety-vsc-extension-demo.deleteLog",
+        "title": "delete log"
       }
     ],
     "keybindings": [
@@ -33,9 +37,15 @@
         "when": ""
       },
       {
-        "command": "onCommand:kitety-vsc-extension-demo.log",
+        "command": "kitety-vsc-extension-demo.log",
         "key": "shift+ctrl+l",
         "mac": "shift+cmd+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "kitety-vsc-extension-demo.deleteLog",
+        "key": "shift+ctrl+r",
+        "mac": "shift+cmd+r",
         "when": "editorTextFocus"
       }
     ],
@@ -44,6 +54,11 @@
         {
           "when": "editorTextFocus",
           "command": "kitety-vsc-extension-demo.log",
+          "group": "navigation"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "kitety-vsc-extension-demo.deleteLog",
           "group": "navigation"
         }
       ]
