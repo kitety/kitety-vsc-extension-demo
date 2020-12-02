@@ -65,8 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
         .then((result) => {
           if (result === "是") {
             console.log(`open 'https://www.baidu.com'`);
+            vscode.env.openExternal(vscode.Uri.parse('https://www.baidu.com'));
           } else {
             console.log("不打开！");
+            vscode.env
           }
         });
     }
@@ -119,4 +121,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
