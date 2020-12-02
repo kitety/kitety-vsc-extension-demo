@@ -27,6 +27,10 @@
       {
         "command": "kitety-vsc-extension-demo.deleteLog",
         "title": "delete log"
+      },
+      {
+        "command": "kitety-vsc-extension-demo.removeComments",
+        "title": "remove comments"
       }
     ],
     "keybindings": [
@@ -60,6 +64,11 @@
           "when": "editorTextFocus",
           "command": "kitety-vsc-extension-demo.deleteLog",
           "group": "navigation"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "kitety-vsc-extension-demo.removeComments",
+          "group": "navigation"
         }
       ]
     }
@@ -70,7 +79,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "build": "npx vsce package"
   },
   "devDependencies": {
     "@types/vscode": "^1.51.0",
