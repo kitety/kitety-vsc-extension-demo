@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:kitety-vsc-extension-demo.helloWorld"
+    "onCommand:kitety-vsc-extension-demo.helloWorld",
+    "onCommand:kitety-vsc-extension-demo.log"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -18,16 +19,35 @@
       {
         "command": "kitety-vsc-extension-demo.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "kitety-vsc-extension-demo.log",
+        "title": "insert log"
       }
     ],
     "keybindings": [
       {
         "command": "kitety-vsc-extension-demo.helloWorld",
-        "key": "ctrl+w",
+        "key": "shift+ctrl+w",
         "mac": "cmd+shift+w",
         "when": ""
+      },
+      {
+        "command": "onCommand:kitety-vsc-extension-demo.log",
+        "key": "shift+ctrl+l",
+        "mac": "shift+cmd+l",
+        "when": "editorTextFocus"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorTextFocus",
+          "command": "kitety-vsc-extension-demo.log",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
