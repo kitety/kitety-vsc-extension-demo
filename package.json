@@ -2,9 +2,9 @@
   "name": "kitety-vsc-extension-demo",
   "displayName": "kitety-vsc-extension-demo",
   "description": "demo",
-  "version": "0.0.1",
-  "publisher":"kitety",
-  "repository":"https://github.com/kitety/kitety-vsc-extension-demo",
+  "version": "0.0.2",
+  "publisher": "kitety",
+  "repository": "https://github.com/kitety/kitety-vsc-extension-demo",
   "engines": {
     "vscode": "^1.46.0"
   },
