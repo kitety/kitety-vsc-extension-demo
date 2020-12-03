@@ -93,7 +93,7 @@
   resolved "https://registry.npm.taobao.org/@types/node/download/@types/node-12.19.8.tgz?cache=0&sync_timestamp=1606763679918&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fnode%2Fdownload%2F%40types%2Fnode-12.19.8.tgz#efd6d1a90525519fc608c9db16c8a78f7693a978"
   integrity sha1-79bRqQUlUZ/GCMnbFsinj3aTqXg=
 
-"@types/vscode@^1.51.0":
+"@types/vscode@^1.46.0":
   version "1.51.0"
   resolved "https://registry.npm.taobao.org/@types/vscode/download/@types/vscode-1.51.0.tgz#f2e324d8385db95030b1454fd1f043618e08097d"
   integrity sha1-8uMk2DhduVAwsUVP0fBDYY4ICX0=

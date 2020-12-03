@@ -6,7 +6,7 @@
   "publisher":"kitety",
   "repository":"https://github.com/kitety/kitety-vsc-extension-demo",
   "engines": {
-    "vscode": "^1.51.0"
+    "vscode": "^1.46.0"
   },
   "categories": [
     "Other"
@@ -85,7 +85,7 @@
     "build": "npx vsce package"
   },
   "devDependencies": {
-    "@types/vscode": "^1.51.0",
+    "@types/vscode": "^1.46.0",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.0",
     "@types/node": "^12.11.7",
