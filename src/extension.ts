@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { Range } from "vscode";
+import Provider from "./Provider";
 
 const insertText = (val: string) => {
   const editor = vscode.window.activeTextEditor!;
@@ -65,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         .then((result) => {
           if (result === "是") {
             console.log(`open 'https://www.baidu.com'`);
-            vscode.env.openExternal(vscode.Uri.parse('https://www.baidu.com'));
+            vscode.env.openExternal(vscode.Uri.parse("https://www.baidu.com"));
           } else {
             console.log("不打开！");
             vscode.env;
@@ -87,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
       const logToInsert = `console.log('${text}: ',${text});\n`;
       // 执行插行方法
       text ? insertText(logToInsert) : insertText("console.log();");
-      vscode.commands.executeCommand('editor.action.formatDocument');
+      vscode.commands.executeCommand("editor.action.formatDocument");
     }
   );
   // 删除所有的log
@@ -112,35 +113,51 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(
           `${logStatement.length} console.log deleted`
         );
-        vscode.commands.executeCommand('editor.action.formatDocument');
+        vscode.commands.executeCommand("editor.action.formatDocument");
       });
       // 代码格式化
     }
   );
 
-  const removeComments = vscode.commands.registerCommand('kitety-vsc-extension-demo.removeComments', () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return;
+  // 删除注释
+  const removeComments = vscode.commands.registerCommand(
+    "kitety-vsc-extension-demo.removeComments",
+    () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return;
+      }
+      editor.edit((editBuilder) => {
+        let text = editor.document.getText();
+        // 正则匹配注释文本
+        text = text
+          .replace(
+            /((\/\*([\w\W]+?)\*\/)|(\/\/(.(?!"\)))+)|(^\s*(?=\r?$)\n))/gm,
+            ""
+          )
+          .replace(/(^\s*(?=\r?$)\n)/gm, "")
+          .replace(/\\n\\n\?/gm, "");
+        // 全量替换当前页面文本
+        const end = new vscode.Position(editor.document.lineCount + 1, 0);
+        editBuilder.replace(
+          new vscode.Range(new vscode.Position(0, 0), end),
+          text
+        );
+        // 代码格式化
+        vscode.commands.executeCommand("editor.action.formatDocument");
+      });
     }
-    editor.edit(editBuilder => {
-      let text = editor.document.getText();
-      // 正则匹配注释文本
-      text = text.replace(/((\/\*([\w\W]+?)\*\/)|(\/\/(.(?!"\)))+)|(^\s*(?=\r?$)\n))/gm, '').replace(/(^\s*(?=\r?$)\n)/gm, '').replace(/\\n\\n\?/gm, '');
-      // 全量替换当前页面文本
-      const end = new vscode.Position(editor.document.lineCount + 1, 0);
-      editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), end), text);
-      // 代码格式化
-      vscode.commands.executeCommand('editor.action.formatDocument');
-
-    });
-  });
+  );
 
   context.subscriptions.push(removeComments);
   context.subscriptions.push(deleteAllLog);
   context.subscriptions.push(insertLog);
   context.subscriptions.push(disposable);
+  // 提供数据的类
+  const provider = new Provider();
+  // 数据注册
+  vscode.window.registerTreeDataProvider("novel-list", provider);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}

@@ -13,7 +13,8 @@
   ],
   "activationEvents": [
     "onCommand:kitety-vsc-extension-demo.helloWorld",
-    "onCommand:kitety-vsc-extension-demo.log"
+    "onCommand:kitety-vsc-extension-demo.log",
+    "onView:novel-list"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -71,6 +72,23 @@
           "when": "editorTextFocus",
           "command": "kitety-vsc-extension-demo.removeComments",
           "group": "navigation"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "novel-read",
+          "icon": "assets/images/logo.avg",
+          "title": "NOVEL READ"
+        }
+      ]
+    },
+    "views": {
+      "novel-read": [
+        {
+          "name": "本地列表栏",
+          "id": "novel-list"
         }
       ]
     }
