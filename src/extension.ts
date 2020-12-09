@@ -3,6 +3,7 @@
 import * as vscode from "vscode";
 import { Range } from "vscode";
 import Provider from "./Provider";
+const fs = require("fs");
 
 const insertText = (val: string) => {
   const editor = vscode.window.activeTextEditor!;
@@ -153,16 +154,45 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(insertLog);
   context.subscriptions.push(disposable);
 
+  let { localNovelsPath } = vscode.workspace.getConfiguration("workbench");
+  // if (!localNovelsPath) {
+  //   return vscode.window.showInformationMessage("请先设置小说路径！");
+  // }
   // 小说部分插件
   // 提供数据的类
   const provider = new Provider();
   vscode.window.registerTreeDataProvider("novel-list", provider);
-  vscode.commands.registerCommand("openSelectedNovel", (args) => {
-    vscode.commands.executeCommand(
-      "vscode.open",
-      vscode.Uri.file(args.path)
-    );
-  });
+  // vscode.commands.registerCommand("openSelectedNovel", (args) => {
+  //   vscode.commands.executeCommand(
+  //     "vscode.open",
+  //     vscode.Uri.file(args.path)
+  //   );
+  // });
+
+  // webview
+  context.subscriptions.push(
+    vscode.commands.registerCommand("openSelectedNovel", (args) => {
+      // 创建webview
+      const pannel = vscode.window.createWebviewPanel(
+        "testWebView", // viewtype
+        "WebView演示", //视图标题
+        vscode.ViewColumn.One, // 显示在编辑器的哪个部位
+        {
+          enableScripts: true, // 启用JS，默认禁用
+          // retainContextWhenHidden: true, // webview被隐藏时保持状态，避免被重置
+        }
+      );
+      // 利用node api拿到文件
+      let result = fs.readFileSync(args.path, "utf-8");
+      pannel.webview.html = `<html>
+					<body>
+						<pre style="flex: 1 1 auto;white-space: pre-wrap;word-wrap: break-word;">
+							${result}
+						<pre>
+					</body>
+				</html>`;
+    })
+  );
 }
 
 // this method is called when your extension is deactivated

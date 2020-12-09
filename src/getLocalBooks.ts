@@ -1,9 +1,11 @@
 import { Novel } from "./typings";
+import * as vscode from "vscode";
 
 const fs = require("fs");
 const path = require("path");
-
-const localNovelsPath =
+let { localNovelsPath } = vscode.workspace.getConfiguration("workbench");
+localNovelsPath =
+  localNovelsPath ||
   "C:\\Users\\kitety\\Documents\\my\\kitety-vsc-extension-demo\\src\\books";
 export function getLocalBooks(): Promise<Novel[]> {
   const files = fs.readdirSync(localNovelsPath);
