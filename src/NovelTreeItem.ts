@@ -15,4 +15,5 @@ export default class NovelTreeItem extends TreeItem {
       arguments: [{ name: info.name, path: info.path }],
     };
   }
+  contextValue = "local";
 }

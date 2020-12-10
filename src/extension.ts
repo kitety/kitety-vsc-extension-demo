@@ -2,8 +2,13 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { Range } from "vscode";
+import FavoriteProvider from "./FavoriteProvider";
+import DataProvider from "./Provider";
 import Provider from "./Provider";
+import { Novel } from "./typings";
+import { getContent, search } from "./utils";
 const fs = require("fs");
+const path = require("path");
 
 const insertText = (val: string) => {
   const editor = vscode.window.activeTextEditor!;
@@ -42,6 +47,18 @@ const getAllLogStatement = (): Range[] => {
     }
   }
   return logStatement;
+};
+export const searchOnline = async function (provider: DataProvider) {
+  const msg = await vscode.window.showInputBox({
+    password: false,
+    ignoreFocusOut: false,
+    placeHolder: "请输入小说的名字",
+    prompt: "",
+  });
+  if (msg) {
+    provider.treeNode = await search(msg);
+    provider.refresh(true);
+  }
 };
 
 // this method is called when your extension is activated
@@ -161,7 +178,57 @@ export function activate(context: vscode.ExtensionContext) {
   // 小说部分插件
   // 提供数据的类
   const provider = new Provider();
+  const favoriteProvider = new FavoriteProvider();
   vscode.window.registerTreeDataProvider("novel-list", provider);
+  vscode.window.registerTreeDataProvider("favorite-novel", favoriteProvider);
+  const searchOnlineNovel = vscode.commands.registerCommand(
+    "kitety-vsc-extension-demo.searchOnlineNovel",
+    () => {
+      searchOnline(provider);
+    }
+  );
+  const localNovels = vscode.commands.registerCommand(
+    "kitety-vsc-extension-demo.local",
+    () => {
+      provider.refresh(false);
+    }
+  );
+  // 行上的数据项会自动传递到函数的args中
+  const addFavorite = vscode.commands.registerCommand(
+    `kitety-vsc-extension-demo.addFavorite`,
+    function (args) {
+      const config = vscode.workspace.getConfiguration();
+      let favorites: Novel[] = config.get("novel.favorites", []);
+      // 用配置项合并当前项
+      favorites = [...favorites, args];
+      // 更新配置后触发收藏栏刷新
+      // 第三项是true为用户全局设置,反之为当前workspace设置,当前设置会覆盖全局设置,切记!
+      config.update("novel.favorites", favorites, true).then(() => {
+        favoriteProvider.refresh();
+      });
+    }
+  );
+  const openOnlineNovel = vscode.commands.registerCommand(
+    "openOnlineNovel",
+    async function (args) {
+      const panel = vscode.window.createWebviewPanel(
+        "novelReadWebview",
+        args.name,
+        vscode.ViewColumn.One,
+        {
+          enableScripts: true,
+          retainContextWhenHidden: true,
+        }
+      );
+      // 把获取的小说内容的html 直接放到webview中
+      panel.webview.html = await getContent(args.path);
+    }
+  );
+  context.subscriptions.push(searchOnlineNovel);
+  context.subscriptions.push(openOnlineNovel);
+  context.subscriptions.push(localNovels);
+  context.subscriptions.push(addFavorite);
+
   // vscode.commands.registerCommand("openSelectedNovel", (args) => {
   //   vscode.commands.executeCommand(
   //     "vscode.open",
@@ -173,24 +240,74 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("openSelectedNovel", (args) => {
       // 创建webview
-      const pannel = vscode.window.createWebviewPanel(
+      const panel = vscode.window.createWebviewPanel(
         "testWebView", // viewtype
         "WebView演示", //视图标题
         vscode.ViewColumn.One, // 显示在编辑器的哪个部位
         {
           enableScripts: true, // 启用JS，默认禁用
-          // retainContextWhenHidden: true, // webview被隐藏时保持状态，避免被重置
+          retainContextWhenHidden: true, // webview被隐藏时保持状态，避免被重置
         }
       );
-      // 利用node api拿到文件
-      let result = fs.readFileSync(args.path, "utf-8");
-      pannel.webview.html = `<html>
-					<body>
-						<pre style="flex: 1 1 auto;white-space: pre-wrap;word-wrap: break-word;">
-							${result}
-						<pre>
-					</body>
-				</html>`;
+      /**
+       * 1.扩展程序安装目录中的文件。
+       * 2.用户当前活动的工作区内。
+       * 3.当然，你还可以使用dataURI直接在Webview中嵌入资源，这种方式没有限制；
+       */
+
+      const onDiskPath = vscode.Uri.file(
+        path.join(context.extensionPath, "src/assets/images", "cat.png")
+      );
+      const catPicSrc = panel.webview.asWebviewUri(onDiskPath);
+      const body = `<h1>hello local cat</h1>`;
+      panel.webview.html = getWebViewContent(body, catPicSrc);
+      const innerHtml = `<h1>Hello Web View</h1>`;
+      // panel.webview.html = getWebViewContent(innerHtml);
+
+      // panel.webview.html = `<html>
+      // 		<body>
+      // 			<pre style="flex: 1 1 auto;white-space: pre-wrap;word-wrap: break-word;">
+      // 				${result}
+      // 			<pre>
+      // 		</body>
+      //   </html>`;
+
+      // 周期性改变html中的内容，因为是直接给webview.html 赋值，说一事刷新整个内容
+      function changeWebView() {
+        const newData = Math.ceil(Math.random() * 100);
+        panel.webview.html = getWebViewContent(`${innerHtml}<p>${newData}</p>`);
+      }
+      const interval = setInterval(changeWebView, 1000);
+      // 可以通过panel onDidDispose 让webview关闭的时候执行一些清理工作
+      panel.onDidDispose(
+        () => {
+          clearInterval(interval);
+        },
+        null,
+        context.subscriptions
+      );
+      function getWebViewContent(body: string, pic?: vscode.Uri) {
+        return `<!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+            <title>Document</title>
+          </head>
+          <body>
+            ${body}
+            <br />
+            <img
+              id="picture"
+              src="${
+                pic || "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
+              }"
+              width="300" />
+          </body>
+        </html>
+          `;
+      }
     })
   );
 }
